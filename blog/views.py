@@ -1,5 +1,13 @@
 from django.shortcuts import render
-from django.views.generic import ListView, DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic import (
+    ListView,
+    DetailView,
+    CreateView,
+    UpdateView,
+    DeleteView
+)
+
 from .models import Post
 
 
@@ -23,6 +31,44 @@ class PostListView(ListView):
 
 class PostDetailView(DetailView):
     model = Post
+
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    fields = ['title', 'content']
+
+    def form_valid(self, form):
+        # here post form instance author is assigned current user
+        form.instance.author = self.request.user
+        return super().form_valid(form)  # validate via parent class using super()
+
+
+# loginmixin just authenticate user
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Post
+    fields = ['title', 'content']
+
+    def form_valid(self, form):
+        # here post form instance author is assigned current user
+        form.instance.author = self.request.user
+        return super().form_valid(form)  # validate via parent class using super()
+
+    def test_func(self):
+        post = self.get_object()
+        if self.request.user == post.author:  # current user authentication
+            return True
+        return False
+
+
+class PostDeleteView(DeleteView, LoginRequiredMixin, UserPassesTestMixin):
+    model = Post
+    success_url = "/"
+
+    def test_func(self):
+        post = self.get_object()
+        if self.request.user == post.author:  # current user authentication
+            return True
+        return False
 
 
 def about(request):
