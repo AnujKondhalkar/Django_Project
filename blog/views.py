@@ -27,6 +27,7 @@ class PostListView(ListView):
     # in html home.html page this variable 'posts will be delivered'
     context_object_name = 'posts'
     ordering = ['-date_posted']        # '-' for newest post first
+    paginate_by = 5
 
 
 class PostDetailView(DetailView):
